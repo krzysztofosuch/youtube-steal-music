@@ -1,8 +1,7 @@
 import youtube_dl
 import pydub
 import re
-from mp3_tagger import MP3File, VERSION_1, VERSION_2, VERSION_BOTH
-
+import eyed3
 def read_lines(msg):
     print(msg)
     buf = []
@@ -35,23 +34,13 @@ def recode_file(filename):
                 song = audio[seconds*1000:]
             (artist, title) = re.split(':|—|\W-\W', tags, 1)
             mp3path = "download/%s-%s.mp3"%(artist.strip(), title.strip())
-            song.export(mp3path, format="mp3")
-            mp3 = MP3File(mp3path)
-            mp3.set_version(VERSION_1)
-            mp3.artist = artist.strip()
-            mp3.song = title.strip()
-            mp3.album = filename[:-17].strip()
-            mp3.save()
-            print("before: ", mp3.get_tags())
-            mp3 = MP3File(mp3path)
-            mp3.set_version(VERSION_2)
-            mp3.artist = artist.strip()
-            mp3.song = title.strip()
-            mp3.album = filename[:-17].strip()
-            mp3.save()
-            mp3 = MP3File(mp3path)
-            print("after:", mp3.get_tags())
-
+            song.export(mp3path, format="mp3", bitrate="320k")
+            audiofile = eyed3.load(mp3path)
+            audiofile.tag.artist = artist.strip()
+            audiofile.tag.album = filename[:-17].strip()
+            audiofile.tag.title = title.strip()
+            audiofile.tag.track_num = n
+            audiofile.tag.save()
             
 def time_to_sec(time):
     seconds = 0;
